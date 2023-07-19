@@ -3,6 +3,10 @@ let uploadInput = document.querySelector("#uploadInput");
 let downloadLink = document.querySelector("#downloadLink");
 let fileInput = null
 function processTransform(){
+    if (fileInput == null){
+        console.log("There is no file input");
+        return false;
+    }
     SaxonJS.transform({
         stylesheetLocation: "cmme_to_mei.sef.json",
         //sourceLocation: "/cmme/Berchem-OFelixRegina.cmme.xml",
@@ -14,8 +18,11 @@ function processTransform(){
             encoding: "utf-8"
         }
     }, "async").then(e => {
+        let filename = uploadInput.files[0].name;
+        filename = filename.split(".");
+        filename = filename[0]+".mei"
         let file = new File([e.principalResult], 
-            'test.mei', {type: 'text/xml'}
+            filename, {type: 'text/xml'}
         )
         console.log(file.type)
         let url = URL.createObjectURL(file)
@@ -26,6 +33,10 @@ function processTransform(){
 }
 
 function loadFile(e){
+    if (e.target.files.length < 1) {
+        fileInput = null;
+        return false;
+    }
     let f = e.target.files[0];
     let reader = new FileReader();
     reader.onload = function(e){
@@ -36,7 +47,6 @@ function loadFile(e){
 
     }
     reader.readAsText(f)
-    console.log("tis worked")
 }
 
 uploadInput.addEventListener("change", loadFile, false);

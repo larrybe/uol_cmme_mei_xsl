@@ -3,7 +3,7 @@
 <xsl:stylesheet version="3.0" xmlns="http://www.music-encoding.org/ns/mei" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:cmme="http://www.cmme.org" exclude-result-prefixes="cmme">
 <xsl:output method="xml" version="1.0" indent="yes" encoding="utf-8" />
 
-<xsl:template match="/">
+<xsl:template match="cmme:Piece">
 <xsl:text>&#xa;</xsl:text>
 <xsl:processing-instruction name="xml-model">
 href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"</xsl:processing-instruction>
@@ -15,20 +15,13 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <!-- meiHead contains the metadata of the music file. The equivalent in CMME is GeneralData  -->
       <meiHead>
         <!-- Transform the contents in the GeneralData element in the CMME file into the meiHead element  -->
-        <xsl:apply-templates select="//cmme:GeneralData" />
+        <xsl:apply-templates select="cmme:GeneralData" />
       </meiHead>
       <!-- The music element contains the music data in mei. The equivalent in CMME is MusicSection -->
       <music>
         <body>
           <mdiv>
-            <score>
-            <scoreDef>
-              <pgHead>
-                <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
-                <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
-              </pgHead>
-            </scoreDef>
-            </score>
+            <xsl:apply-templates select="cmme:MusicSection" />
           </mdiv>
         </body>
       </music>
@@ -63,7 +56,6 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <source>
         <bibl>
           <identifier label="electronic" type="URI">https://www.cmme.org/database</identifier>
-          <title><xsl:value-of select="tokenize(base-uri(.), '/')[last()]" /></title>
           <editor><xsl:value-of select="cmme:Editor" /></editor>
         </bibl>
       </source>
@@ -90,5 +82,27 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   <extMeta></extMeta>
 </xsl:template>
 
+<xsl:template match="cmme:MusicSection">
+  <score>
+    <scoreDef>
+      <pgHead>
+        <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
+        <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
+      </pgHead>
+      <staffGrp>
+        <staffDef>
+          <xsl:call-template name="staffdef" />
+        </staffDef>
+      </staffGrp>
+    </scoreDef>
+  </score>
+</xsl:template>
+
+<xsl:template name="staffdef">
+  <xsl:for-each>
+    
+  </xsl:for-each>
+  <staff><xsl:value-of select="position()" /></staff>
+</xsl:template>
 
 </xsl:stylesheet>
