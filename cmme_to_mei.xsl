@@ -122,21 +122,6 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
         <xsl:attribute name="n">
           <xsl:value-of select="position()" />
         </xsl:attribute>
-        <xsl:attribute name="clef.shape">
-          <xsl:value-of select="cmme:Clef[1]/cmme:Appearance"/>
-        </xsl:attribute>
-        <!-- Investigate the staffLoc thing -->
-        <xsl:attribute name="clef.line">
-          <xsl:value-of select="cmme:Clef[1]/cmme:StaffLoc"/>
-        </xsl:attribute>
-        <xsl:attribute name="mensur.sign">
-          <xsl:value-of select="cmme:Mensuration/cmme:Sign/cmme:MainSymbol" />
-        </xsl:attribute>
-        <xsl:if test="cmme:Mensuration/cmme:Sign/cmme:Orientation">
-        <xsl:attribute name="mensur.orient">
-          <xsl:value-of select="translate(cmme:Mensuration/cmme:Sign/cmme:Orientation, 'R', 'r')" />
-        </xsl:attribute>
-      </xsl:if>
         <xsl:attribute name="notationtype">
           <xsl:text>mensural</xsl:text>
         </xsl:attribute>
@@ -146,6 +131,22 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       </staffDef>
     </xsl:for-each>
   </staffGrp>
+</xsl:template>
+
+<xsl:template match="cmme:Clef">
+  <clef>
+    <xsl:call-template name="ClefData" />
+  </clef>
+</xsl:template>
+
+<xsl:template name="ClefData">
+  <xsl:attribute name="shape">
+    <xsl:value-of select="cmme:Appearance"/>
+  </xsl:attribute>
+  <!-- Investigate the staffLoc thing -->
+  <xsl:attribute name="line">
+    <xsl:value-of select="cmme:StaffLoc"/>
+  </xsl:attribute>
 </xsl:template>
 
 <xsl:template name="MusicSectionData">
@@ -165,10 +166,27 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
           <xsl:value-of select="position()" />
         </xsl:attribute>
         <layer>
-          <xsl:apply-templates select="cmme:Note|cmme:Rest|cmme:Dot" />
+          <xsl:apply-templates select="cmme:Note|cmme:Mensuration|cmme:Rest|cmme:Dot" />
         </layer>
       </staff>
   </xsl:for-each>
+</xsl:template>
+
+<xsl:template match="cmme:Mensuration">
+  <mensur>
+    <xsl:call-template name="MensurationData" />
+  </mensur>
+</xsl:template>
+
+<xsl:template name="MensurationData">
+  <xsl:attribute name="sign">
+    <xsl:value-of select="cmme:Sign/cmme:MainSymbol" />
+  </xsl:attribute>
+  <xsl:if test="cmme:Sign/cmme:Orientation">
+    <xsl:attribute name="orient">
+      <xsl:value-of select="translate(cmme:Sign/cmme:Orientation, 'R', 'r')" />
+    </xsl:attribute>
+  </xsl:if>
 </xsl:template>
 
 <!-- Template for the NoteData group in the CMME schema -->
@@ -180,12 +198,12 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     <xsl:if test="cmme:ModernAccidental">
       <xsl:call-template name="ModernAccidentalData" />
     </xsl:if>
-    <xsl:if test="cmme:Lig">
-      <!-- Lost data: Retrorsum -->
+    <!-- <xsl:if test="cmme:Lig">
+      Lost data: Retrorsum
       <xsl:attribute name="lig">
         
       </xsl:attribute>
-    </xsl:if>
+    </xsl:if> -->
   </note>
 </xsl:template>
 
@@ -226,9 +244,9 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
 <xsl:template name="DotData">
   <xsl:choose>
-    <xsl:when test="cmme:Pitch/cmme:StaffLoc">
+    <xsl:when test="cmme:StaffLoc">
       <xsl:attribute name="loc">
-        <xsl:value-of select="cmme:Pitch/cmme:StaffLoc" />
+        <xsl:value-of select="cmme:StaffLoc" />
       </xsl:attribute>
     </xsl:when>
     <xsl:otherwise>
