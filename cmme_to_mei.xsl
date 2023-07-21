@@ -46,7 +46,6 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <xsl:if test="cmme:PublicNotes">
         <annot label="PublicNotes"><xsl:value-of select="cmme:PublicNotes" /></annot>
       </xsl:if>
-      <!-- Nope -->
       <xsl:if test="cmme:Notes">
       <annot label="Notes"><xsl:value-of select="cmme:Notes" /></annot>
       </xsl:if>
@@ -84,25 +83,180 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
 <xsl:template match="cmme:MusicSection">
   <score>
+    <xsl:if test="cmme:Editorial or cmme:PrincipalSource">
+      <app>
+        <rdg>
+          <xsl:if test="cmme:Editorial">
+            <annot label="CMME-Editorial"><xsl:value-of select="cmme:Editorial" /></annot>
+          </xsl:if>
+          <xsl:if test="cmme:PrincipalSource">
+            <!-- TODO: SourceInfo -->
+          </xsl:if>
+        </rdg>
+      </app>
+    </xsl:if>
     <scoreDef>
-      <pgHead>
-        <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
-        <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
-      </pgHead>
-      <staffGrp>
-        <staffDef>
-          <xsl:call-template name="staffdef" />
-        </staffDef>
-      </staffGrp>
+      <!-- Template to render the title and composer in the score viewer -->
+      <xsl:call-template name="renderTitle" />
+      <!-- Template that defines the staffs -->
+      <xsl:call-template name="StaffDefinition" />
     </scoreDef>
+    <!-- Template for the music notation data -->
+    <xsl:call-template name="MusicSectionData" />
   </score>
 </xsl:template>
 
-<xsl:template name="staffdef">
-  <xsl:for-each>
-    
+<xsl:template name="renderTitle">
+  <!-- Renders the title and name of composer at the top of the score viewer -->
+  <pgHead>
+    <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
+    <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
+  </pgHead>
+</xsl:template>
+
+<xsl:template name="StaffDefinition">
+  <!-- Define staffs -->
+  <staffGrp>
+    <xsl:for-each select="cmme:MensuralMusic/cmme:Voice/cmme:EventList">
+      <staffDef>
+        <xsl:attribute name="n">
+          <xsl:value-of select="position()" />
+        </xsl:attribute>
+        <xsl:attribute name="clef.shape">
+          <xsl:value-of select="cmme:Clef[1]/cmme:Appearance"/>
+        </xsl:attribute>
+        <!-- Investigate the staffLoc thing -->
+        <xsl:attribute name="clef.line">
+          <xsl:value-of select="cmme:Clef[1]/cmme:StaffLoc"/>
+        </xsl:attribute>
+        <xsl:attribute name="mensur.sign">
+          <xsl:value-of select="cmme:Mensuration/cmme:Sign/cmme:MainSymbol" />
+        </xsl:attribute>
+        <xsl:if test="cmme:Mensuration/cmme:Sign/cmme:Orientation">
+        <xsl:attribute name="mensur.orient">
+          <xsl:value-of select="translate(cmme:Mensuration/cmme:Sign/cmme:Orientation, 'R', 'r')" />
+        </xsl:attribute>
+      </xsl:if>
+        <xsl:attribute name="notationtype">
+          <xsl:text>mensural</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="lines">
+          <xsl:text>5</xsl:text>
+        </xsl:attribute>
+      </staffDef>
+    </xsl:for-each>
+  </staffGrp>
+</xsl:template>
+
+<xsl:template name="MusicSectionData">
+  <section>
+    <xsl:apply-templates select="cmme:MensuralMusic/cmme:Voice" />
+</section>
+</xsl:template>
+
+<xsl:template match="cmme:MensuralMusic/cmme:Voice">
+  <xsl:call-template name="SingleVoiceMensuralSectionData" />
+</xsl:template>
+
+<xsl:template name="SingleVoiceMensuralSectionData">
+  <xsl:for-each select="cmme:EventList">
+      <staff>
+        <xsl:attribute name="n">
+          <xsl:value-of select="position()" />
+        </xsl:attribute>
+        <layer>
+          <xsl:apply-templates select="cmme:Note|cmme:Rest|cmme:Dot" />
+        </layer>
+      </staff>
   </xsl:for-each>
-  <staff><xsl:value-of select="position()" /></staff>
+</xsl:template>
+
+<!-- Template for the NoteData group in the CMME schema -->
+<xsl:template match="cmme:Note">
+  <note>
+    <xsl:call-template name="NoteInfoData" />
+    <xsl:call-template name="StaffPitchData" />
+    <!-- TODO -->
+    <xsl:if test="cmme:ModernAccidental">
+      <xsl:call-template name="ModernAccidentalData" />
+    </xsl:if>
+    <xsl:if test="cmme:Lig">
+      <!-- Lost data: Retrorsum -->
+      <xsl:attribute name="lig">
+        
+      </xsl:attribute>
+    </xsl:if>
+  </note>
+</xsl:template>
+
+<!-- Template for dot data -->
+<xsl:template match="cmme:Dot">
+  <dot>
+    <xsl:call-template name="DotData" />
+  </dot>
+</xsl:template>
+
+<!-- Template for rest data -->
+<xsl:template match="cmme:Rest">
+  <rest>
+    <xsl:call-template name="NoteInfoData" />
+  </rest>
+</xsl:template>
+
+<xsl:template name="NoteInfoData">
+  <xsl:attribute name="dur">
+    <xsl:value-of select="lower-case(cmme:Type)" />
+  </xsl:attribute>
+  <xsl:attribute name="num">
+    <xsl:value-of select="cmme:Length/cmme:Num" />
+  </xsl:attribute>
+  <xsl:attribute name="numbase">
+    <xsl:value-of select="cmme:Length/cmme:Den" />
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template name="StaffPitchData">
+  <xsl:if test="cmme:StaffLoc">
+    <xsl:attribute name="loc">
+      <xsl:value-of select="cmme:StaffLoc" />
+    </xsl:attribute>
+  </xsl:if>
+  <xsl:call-template name="Locus" />
+</xsl:template>
+
+<xsl:template name="DotData">
+  <xsl:choose>
+    <xsl:when test="cmme:Pitch/cmme:StaffLoc">
+      <xsl:attribute name="loc">
+        <xsl:value-of select="cmme:Pitch/cmme:StaffLoc" />
+      </xsl:attribute>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:attribute name="ploc">
+        <xsl:value-of select="lower-case(cmme:Pitch/cmme:LetterName)" />
+      </xsl:attribute>
+      <xsl:attribute name="oloc">
+        <xsl:value-of select="cmme:Pitch/cmme:OctaveNum" />
+      </xsl:attribute>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+
+<!-- Matches with Locus in the CMME schema 
+    Contains the pitch letter and octave number
+ -->
+<xsl:template name="Locus">
+  <xsl:attribute name="pname">
+    <xsl:value-of select="lower-case(cmme:LetterName)" />
+  </xsl:attribute>
+  <xsl:attribute name="oct">
+    <xsl:value-of select="cmme:OctaveNum" />
+  </xsl:attribute>
+</xsl:template>
+
+<!-- TODO -->
+<xsl:template name="ModernAccidentalData">
+
 </xsl:template>
 
 </xsl:stylesheet>
