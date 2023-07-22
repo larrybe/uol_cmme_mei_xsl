@@ -21,7 +21,12 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <music>
         <body>
           <mdiv>
-            <xsl:apply-templates select="cmme:MusicSection" />
+            <score>
+              <!-- Using the cmme VoiceData element Builds the scoreDef element -->
+              <xsl:apply-templates select="cmme:VoiceData" />
+              <!-- -->
+              <xsl:apply-templates select="cmme:MusicSection" />
+            </score>
           </mdiv>
         </body>
       </music>
@@ -81,8 +86,45 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   <extMeta></extMeta>
 </xsl:template>
 
+<xsl:template match="cmme:VoiceData">
+  <scoreDef>
+    <xsl:call-template name="renderTitle" />
+    <xsl:call-template name="StaffDefinition" />
+  </scoreDef>
+  <!-- Template to render the title and composer in the score viewer -->
+</xsl:template>
+
+<xsl:template name="renderTitle">
+  <!-- Renders the title and name of composer at the top of the score viewer -->
+    <pgHead>
+      <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
+      <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
+    </pgHead>
+</xsl:template>
+
+<xsl:template name="StaffDefinition">
+  <!-- Define staffs -->
+  <staffGrp>
+    <xsl:for-each select="cmme:Voice">
+      <staffDef>
+        <xsl:attribute name="n">
+          <xsl:value-of select="position()" />
+        </xsl:attribute>
+        <xsl:attribute name="notationtype">
+          <xsl:text>mensural</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="lines">
+          <xsl:text>5</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="label">
+          <xsl:value-of select="cmme:Name" />
+        </xsl:attribute>
+      </staffDef>
+    </xsl:for-each>
+  </staffGrp>
+</xsl:template>
+
 <xsl:template match="cmme:MusicSection">
-  <score>
     <xsl:if test="cmme:Editorial or cmme:PrincipalSource">
       <app>
         <rdg>
@@ -95,42 +137,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
         </rdg>
       </app>
     </xsl:if>
-    <scoreDef>
-      <!-- Template to render the title and composer in the score viewer -->
-      <xsl:call-template name="renderTitle" />
-      <!-- Template that defines the staffs -->
-      <xsl:call-template name="StaffDefinition" />
-    </scoreDef>
     <!-- Template for the music notation data -->
     <xsl:call-template name="MusicSectionData" />
-  </score>
-</xsl:template>
-
-<xsl:template name="renderTitle">
-  <!-- Renders the title and name of composer at the top of the score viewer -->
-  <pgHead>
-    <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
-    <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
-  </pgHead>
-</xsl:template>
-
-<xsl:template name="StaffDefinition">
-  <!-- Define staffs -->
-  <staffGrp>
-    <xsl:for-each select="cmme:MensuralMusic/cmme:Voice/cmme:EventList">
-      <staffDef>
-        <xsl:attribute name="n">
-          <xsl:value-of select="position()" />
-        </xsl:attribute>
-        <xsl:attribute name="notationtype">
-          <xsl:text>mensural</xsl:text>
-        </xsl:attribute>
-        <xsl:attribute name="lines">
-          <xsl:text>5</xsl:text>
-        </xsl:attribute>
-      </staffDef>
-    </xsl:for-each>
-  </staffGrp>
 </xsl:template>
 
 <xsl:template match="cmme:Clef">
@@ -147,26 +155,33 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   <xsl:attribute name="line">
     <xsl:value-of select="cmme:StaffLoc"/>
   </xsl:attribute>
+  <xsl:attribute name="oct">
+    <xsl:value-of select="cmme:Pitch/cmme:OctaveNum" />
+  </xsl:attribute>
+  <!-- <xsl:attribute name="staff">
+    <xsl:value-of select="../../cmme:VoiceNum" />
+  </xsl:attribute> -->
+
 </xsl:template>
 
 <xsl:template name="MusicSectionData">
   <section>
-    <xsl:apply-templates select="cmme:MensuralMusic/cmme:Voice" />
+    <xsl:apply-templates select="cmme:MensuralMusic" />
 </section>
 </xsl:template>
 
-<xsl:template match="cmme:MensuralMusic/cmme:Voice">
+<xsl:template match="cmme:MensuralMusic">
   <xsl:call-template name="SingleVoiceMensuralSectionData" />
 </xsl:template>
 
 <xsl:template name="SingleVoiceMensuralSectionData">
-  <xsl:for-each select="cmme:EventList">
+  <xsl:for-each select="cmme:Voice/cmme:EventList">
       <staff>
         <xsl:attribute name="n">
-          <xsl:value-of select="position()" />
+          <xsl:value-of select="../cmme:VoiceNum" />
         </xsl:attribute>
         <layer>
-          <xsl:apply-templates select="cmme:Note|cmme:Mensuration|cmme:Rest|cmme:Dot" />
+          <xsl:apply-templates select="*" />
         </layer>
       </staff>
   </xsl:for-each>
@@ -204,17 +219,32 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
         
       </xsl:attribute>
     </xsl:if> -->
+    <xsl:if test="cmme:ModernText">
+      <verse>
+        <syl>
+          <xsl:value-of select="cmme:ModernText/cmme:Syllable" />
+        </syl>
+      </verse>
+    </xsl:if>
   </note>
 </xsl:template>
 
-<!-- Template for dot data -->
+<xsl:template match="cmme:OriginalText">
+  <orig>
+    <verse>
+      <syl><xsl:value-of select="cmme:Phrase" /></syl>
+    </verse>
+  </orig>
+</xsl:template>
+
+<!-- Dot Data -->
 <xsl:template match="cmme:Dot">
   <dot>
     <xsl:call-template name="DotData" />
   </dot>
 </xsl:template>
 
-<!-- Template for rest data -->
+<!-- Rest Data -->
 <xsl:template match="cmme:Rest">
   <rest>
     <xsl:call-template name="NoteInfoData" />
@@ -258,6 +288,26 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       </xsl:attribute>
     </xsl:otherwise>
   </xsl:choose>
+</xsl:template>
+
+<xsl:template match="cmme:VariantReadings">
+  <app>
+    <xsl:apply-templates select="cmme:Reading" />
+  </app>
+</xsl:template>
+
+<xsl:template match="cmme:Reading">
+  <rdg>
+    <identifier><xsl:value-of select="cmme:VariantVersionID" /></identifier>
+    <xsl:choose>
+      <xsl:when test="cmme:Lacuna">
+
+      </xsl:when>
+      <xsl:when test="cmme:Music">
+
+      </xsl:when>
+    </xsl:choose>
+  </rdg>
 </xsl:template>
 
 <!-- Matches with Locus in the CMME schema 
