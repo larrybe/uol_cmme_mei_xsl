@@ -22,7 +22,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
         <body>
           <mdiv>
             <score>
-              <!-- Using the cmme VoiceData element Builds the scoreDef element -->
+              <!-- Using the cmme VoiceData for the scoreDef element -->
               <xsl:apply-templates select="cmme:VoiceData" />
               <!-- -->
               <xsl:apply-templates select="cmme:MusicSection" />
@@ -74,6 +74,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       </application>
     </appInfo>
   </encodingDesc>
+  <!-- INVESTIGATE -->
   <xsl:if test="cmme:Incipit or cmme:VariantVersion">
     <workList>
       <!-- Incipit in CMME -->
@@ -85,6 +86,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <xsl:apply-templates select="cmme:VariantVersion" />
     </workList>
   </xsl:if>
+  <!-- / -->
 </xsl:template>
 
 <xsl:template match="cmme:Incipit">
@@ -258,16 +260,17 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     <xsl:attribute name="n">
       <xsl:value-of select="../cmme:VoiceNum" />
     </xsl:attribute>
-    <xsl:call-template name="SingleEventData" />
+    <layer>
+      <xsl:call-template name="SingleEventData" />
+    </layer>
   </staff>
 </xsl:template>
 
 <xsl:template name="SingleEventData">
-  <layer>
     <xsl:apply-templates select="*" />
-  </layer>
 </xsl:template>
 
+<!-- events representing original notational elements -->
 
 <!-- CLEF -->
 <xsl:template match="cmme:Clef">
@@ -407,23 +410,40 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 
-<!-- NoteData -->
+<!-- NOTE -->
 <xsl:template match="cmme:Note">
   <note>
-    <xsl:call-template name="NoteInfoData" />
-    <xsl:call-template name="StaffPitchData" />
-    <!-- TODO ModernAccidental -->
-    <xsl:apply-templates select="cmme:ModernAccidental" />
-    <!--  Flagged -->
-    <xsl:apply-templates select="cmme:Lig" />
-    <xsl:apply-templates select="cmme:Tie" />
-    <!-- Stem --> <!-- /Dir --> <!-- /Side -->
-    <!-- HalfColoration -->
-    <!-- Corona --><!-- /SignumData -->
-    <!-- Signum --><!-- /SignumData -->
-    <xsl:apply-templates select="cmme:ModernText" />
-    <!-- EventAttributes -->
+
+    <xsl:attribute name="xml:id">
+      <xsl:choose>
+        <xsl:when test="@ID">
+          <xsl:value-of select="@ID" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="concat('note-', generate-id())" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:attribute>
+
+    <xsl:call-template name="NoteData" />
   </note>
+</xsl:template>
+
+<!-- NoteData -->
+<xsl:template name="NoteData">
+  <xsl:call-template name="NoteInfoData" />
+  <xsl:call-template name="StaffPitchData" />
+  <!-- TODO ModernAccidental -->
+  <xsl:apply-templates select="cmme:ModernAccidental" />
+  <!--  Flagged -->
+  <xsl:apply-templates select="cmme:Lig" />
+  <xsl:apply-templates select="cmme:Tie" />
+  <xsl:apply-templates select="cmme:Stem" />
+  <!-- HalfColoration -->
+  <xsl:apply-templates select="cmme:Corona" />
+  <!-- Signum --><!-- /SignumData -->
+  <xsl:apply-templates select="cmme:ModernText" />
+  <!-- EventAttributes -->
 </xsl:template>
 
 <xsl:template name="NoteInfoData">
@@ -438,6 +458,48 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   </xsl:attribute>
 </xsl:template>
 
+  <!-- Stem -->
+<xsl:template match="cmme:Stem">
+  <xsl:apply-templates select="cmme:Dir" />
+  <xsl:apply-templates select="cmme:Side" />
+</xsl:template>
+
+<xsl:template match="cmme:Dir">
+  <xsl:attribute name="stem.dir">
+   <xsl:value-of select="lower-case(.)" />
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="cmme:Side">
+  <xsl:attribute name="stem.pos">
+    <xsl:value-of select="lower-case(.)" />
+  </xsl:attribute>
+</xsl:template>
+  <!-- /Stem -->
+
+  <!-- Corona / fermata -->
+<xsl:template match="cmme:Corona">
+  <xsl:if test="cmme:Orientation">
+    <xsl:attribute name="fermata">
+      <xsl:choose>
+        <xsl:when test="cmme:Orientation = Up">
+          <xsl:value-of select="translate(cmme:Orientation, 'Up', 'above')" />
+        </xsl:when>
+        <xsl:when test="cmme:Orientation = Down">
+          <xsl:value-of select="translate(cmme:Orientation, 'Down', 'below')" />
+        </xsl:when>
+      </xsl:choose>
+    </xsl:attribute>
+  </xsl:if>
+</xsl:template>
+<!-- /Corona -->
+
+
+<!-- Signum -->
+
+<!-- /Signum -->
+
+<!-- ModernText -->
 <xsl:template match="cmme:ModernText">
   <verse>
     <syl>
@@ -445,18 +507,14 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     </syl>
   </verse>
 </xsl:template>
+<!-- /ModernText -->
 
-<xsl:template match="cmme:OriginalText">
-  <orig>
-    <verse>
-      <syl><xsl:value-of select="cmme:Phrase" /></syl>
-    </verse>
-  </orig>
-</xsl:template>
 
 <!-- Dot -->
 <xsl:template match="cmme:Dot">
   <dot>
+    <!-- @ID -->
+
     <xsl:call-template name="DotData" />
   </dot>
 </xsl:template>
@@ -485,20 +543,57 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   </xsl:choose>
   <!-- EventAttributes -->
 </xsl:template>
+<!-- /Dot -->
 
 
+<!-- OriginalText -->
+<xsl:template match="cmme:OriginalText">
+  <orig>
+    <verse>
+      <syl><xsl:value-of select="cmme:Phrase" /></syl>
+    </verse>
+  </orig>
+</xsl:template>
+<!-- /OriginalText -->
+
+
+<!-- Proportion -->
+<xsl:template match="cmme:Proportion">
+  <proport>
+      <!-- @ID -->
+    
+      <xsl:call-template name="ProportionData" />
+  </proport>
+</xsl:template>
+
+<xsl:template name="ProportionData">
+  <xsl:attribute name="num">
+    <xsl:value-of select="cmme:Num" />
+  </xsl:attribute>
+  <xsl:attribute name="numbase">
+    <xsl:value-of select="cmme:Den" />
+  </xsl:attribute>
+  <!-- EventAttributes -->
+</xsl:template>
+<!-- /Proportion -->
+
+
+<!-- Custos -->
 <xsl:template match="cmme:Custos">
   <custos>
+    <!-- @ID -->
+
     <xsl:call-template name="StaffPitchData" />
     <!-- TODO EventAttributes -->
   </custos>
 </xsl:template>
+<!-- /Custos -->
 
-<xsl:template match="cmme:Proportion">
-  <!-- TODO Proportion -->
-</xsl:template>
 
+<!-- LineEnd / xxxx -->
 <xsl:template match="cmme:LineEnd">
+  <!-- @ID -->
+
   <xsl:call-template name="LineEndData" />
 </xsl:template>
 
@@ -510,11 +605,16 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 <xsl:template match="cmme:PageEnd">
   <sb />
 </xsl:template>
+<!-- /LineEnd -->
 
+
+<!-- MiscItem -->
 <xsl:template match="cmme:MiscItem">
   
 </xsl:template>
+<!-- /MiscItem -->
 
+<!-- /events representing original notational elements -->
 
 <xsl:template name="StaffPitchData">
   <xsl:if test="cmme:StaffLoc">
