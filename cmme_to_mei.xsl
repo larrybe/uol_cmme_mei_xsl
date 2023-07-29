@@ -279,7 +279,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <xsl:call-template name="Clef" />
     </xsl:when>
     <xsl:otherwise>
-      <xsl:call-template name="Accidental" />
+      <xsl:call-template name="KeySignature" />
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
@@ -318,13 +318,15 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   <!-- EventAttributes -->
 </xsl:template>
 
-<xsl:template name="Accidental">
-  <accid>
-    <xsl:call-template name="AccidentalData" />
-  </accid>
+<xsl:template name="KeySignature">
+  <keySig>
+    <keyAccid>
+      <xsl:call-template name="KeySignatureData" />
+    </keyAccid>
+  </keySig>
 </xsl:template>
 
-<xsl:template name="AccidentalData">
+<xsl:template name="KeySignatureData">
   <xsl:attribute name="accid">
     <xsl:choose>
       <xsl:when test="cmme:Appearance='Bmol'">
@@ -336,10 +338,13 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
       <!-- TODO: The rest -->
     </xsl:choose>
   </xsl:attribute>
-  <xsl:attribute name="ploc">
+  <xsl:attribute name="loc">
+    <xsl:value-of select="cmme:StaffLoc" ></xsl:value-of>
+  </xsl:attribute>
+  <xsl:attribute name="pname">
     <xsl:value-of select="lower-case(cmme:Pitch/cmme:LetterName)" />
   </xsl:attribute>
-  <xsl:attribute name="oloc">
+  <xsl:attribute name="oct">
     <xsl:value-of select="cmme:Pitch/cmme:OctaveNum" />
   </xsl:attribute>
 </xsl:template>
@@ -549,9 +554,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 <!-- OriginalText -->
 <xsl:template match="cmme:OriginalText">
   <orig>
-    <verse>
-      <syl><xsl:value-of select="cmme:Phrase" /></syl>
-    </verse>
+    <xsl:value-of select="cmme:Phrase" />
   </orig>
 </xsl:template>
 <!-- /OriginalText -->
