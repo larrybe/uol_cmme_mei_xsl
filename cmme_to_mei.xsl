@@ -296,7 +296,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   </xsl:attribute>
   <!-- Investigate the staffLoc thing -->
   <xsl:attribute name="line">
-    <xsl:value-of select="cmme:StaffLoc"/>
+    <xsl:value-of select="ceiling(cmme:StaffLoc div 2)"/>
   </xsl:attribute>
   <xsl:attribute name="oct">
     <xsl:value-of select="cmme:Pitch/cmme:OctaveNum" />
@@ -306,8 +306,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   </xsl:attribute> -->
   <xsl:attribute name="xml:id">
     <xsl:choose>
-      <xsl:when test="@ID">
-        <xsl:value-of select="@ID" />
+      <xsl:when test="cmme:ID">
+        <xsl:value-of select="cmme:ID" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="concat('clef-', generate-id())" />
@@ -339,7 +339,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     </xsl:choose>
   </xsl:attribute>
   <xsl:attribute name="loc">
-    <xsl:value-of select="cmme:StaffLoc" ></xsl:value-of>
+    <xsl:value-of select="cmme:StaffLoc - 1" />
   </xsl:attribute>
   <xsl:attribute name="pname">
     <xsl:value-of select="lower-case(cmme:Pitch/cmme:LetterName)" />
@@ -387,8 +387,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   </xsl:attribute>
   <xsl:attribute name="xml:id">
     <xsl:choose>
-      <xsl:when test="@ID">
-        <xsl:value-of select="@ID" />
+      <xsl:when test="cmme:ID">
+        <xsl:value-of select="cmme:ID" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="concat('mensuration-', generate-id())" />
@@ -421,8 +421,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
     <xsl:attribute name="xml:id">
       <xsl:choose>
-        <xsl:when test="@ID">
-          <xsl:value-of select="@ID" />
+        <xsl:when test="cmme:ID">
+          <xsl:value-of select="cmme:ssID" />
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="concat('note-', generate-id())" />
@@ -699,7 +699,46 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template name="ModernAccidentalData">
+  <xsl:choose>
+    <xsl:when test="cmme:PitchOffset">
+      <xsl:apply-templates select="cmme:PitchOffset" />
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:call-template name="SignatureAccidentals" />
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
 
+<xsl:template match="cmme:PitchOffset">
+  <xsl:attribute name="accid">
+    <xsl:choose>
+      <xsl:when test=". = -3">
+        <xsl:text>tf</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = -2">
+        <xsl:text>ff</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = -1">
+        <xsl:text>f</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = 0">
+        <xsl:text>n</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = 1">
+        <xsl:text>s</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = 2">
+        <xsl:text>x</xsl:text>
+      </xsl:when>
+      <xsl:when test=". = 3">
+        <xsl:text>xs</xsl:text>
+      </xsl:when>
+    </xsl:choose>
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template name="SignatureAccidentals">
+  
 </xsl:template>
 
 </xsl:stylesheet>
