@@ -782,12 +782,12 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template match="cmme:MultiEvent">
-  <graceGrp label="MultiEvent">
-    <!-- <xsl:comment>
+  <!-- <graceGrp label="MultiEvent">
+    <xsl:comment>
       cmme MultiEvent Element
-    </xsl:comment> -->
+    </xsl:comment> 
     <xsl:call-template name="SingleEventData" />
-  </graceGrp>
+  </graceGrp>-->
 </xsl:template>
 
 <!-- Matches with Locus in the CMME schema 
