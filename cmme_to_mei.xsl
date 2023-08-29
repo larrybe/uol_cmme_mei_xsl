@@ -6,12 +6,12 @@
 <xsl:template match="cmme:Piece">
 <xsl:text>&#xa;</xsl:text>
 <xsl:processing-instruction name="xml-model">
-href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"</xsl:processing-instruction>
+href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"</xsl:processing-instruction>
 <xsl:text>&#xa;</xsl:text>
 <xsl:processing-instruction name="xml-model">
-href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"</xsl:processing-instruction>
+href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"</xsl:processing-instruction>
 <!-- Start of the mei file -->
-    <mei  meiversion="4.0.1">
+    <mei meiversion="4.0.1">
       <!-- meiHead contains the metadata of the music file. The equivalent in CMME is GeneralData  -->
       <meiHead>
         <!-- Transform the contents in the GeneralData element in the CMME file into the meiHead element  -->
@@ -179,6 +179,46 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 <!-- / cmme:GeneralData/Metadata -->
 
 
+<!-- /BaseColoration -->
+<xsl:template name="PrimaryColor">
+    <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Color" />
+    <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Color" />
+</xsl:template>
+
+<xsl:template name="PrimaryFill">
+    <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Fill" />
+    <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Fill" />
+</xsl:template>
+
+<xsl:template name="SecondaryColor">
+    <xsl:apply-templates select="//cmme:BaseColoration/cmme:SecondaryColor/cmme:Color" />
+</xsl:template>
+
+<xsl:template name="SecondaryFill">
+    <xsl:apply-templates select="//cmme:BaseColoration/cmme:SecondaryColor/cmme:Fill" />
+</xsl:template>
+
+<xsl:template match="cmme:Color">
+  <xsl:attribute name="color">
+    <xsl:value-of select="lower-case(.)" />
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="cmme:Fill">
+  <xsl:attribute name="head.fill">
+    <xsl:choose>
+      <xsl:when test=".='Full'">
+        <xsl:text>solid</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="lower-case(.)" />
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:attribute>
+</xsl:template>
+<!-- -->
+
+
 <!-- cmme:VoiceData -->
 <!-- Defines the musical staffs -->
 <xsl:template match="cmme:VoiceData">
@@ -264,7 +304,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 
 <xsl:template name="MensuralMusicData">
   <!-- NumVoices -->
-  <!-- BaseColoration -->
+  <!-- basecoloration -->
   <xsl:apply-templates select="cmme:TacetInstruction" />
   <xsl:apply-templates select="../cmme:MensuralMusic/cmme:Voice" />
 </xsl:template>
@@ -318,7 +358,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 
 <xsl:template name="PlainchantSectionData">
   <!-- NumVoices -->
-  <!-- BaseColaration -->
+  <!-- BaseColoration -->
   <!-- TacetInstruction -->
   <xsl:apply-templates select="../cmme:Plainchant/cmme:Voice" />
   <!-- TextSectionData -->
@@ -385,7 +425,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <xsl:attribute name="oct">
     <xsl:value-of select="cmme:Pitch/cmme:OctaveNum" />
   </xsl:attribute>
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
 <xsl:template name="KeySignature">
@@ -442,7 +482,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <!-- TODO: Small -->
   <xsl:apply-templates select="cmme:MensInfo" />
   <!-- TODO: NoScoreEffect -->
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
   <!-- Sign -->
@@ -573,7 +613,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <xsl:apply-templates select="cmme:NumSpaces" />
   <xsl:apply-templates select="cmme:Corona" />
   <!-- Signum --><!-- /SignumData -->
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
 <xsl:template match="cmme:NumSpaces">
@@ -590,18 +630,6 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 <!-- NOTE -->
 <xsl:template match="cmme:Note">
   <note>
-
-    <!-- <xsl:attribute name="xml:id">
-      <xsl:choose>
-        <xsl:when test="cmme:ID">
-          <xsl:value-of select="cmme:ssID" />
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="concat('note-', generate-id())" />
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:attribute> -->
-
     <xsl:call-template name="NoteData" />
   </note>
 </xsl:template>
@@ -617,11 +645,25 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <xsl:apply-templates select="cmme:Lig" />
   <xsl:apply-templates select="cmme:Tie" />
   <xsl:apply-templates select="cmme:Stem" />
+  <!-- Coloration -->
+  <xsl:choose>
+    <xsl:when test="cmme:Colored">
+      <xsl:attribute name="colored">
+        <xsl:text>true</xsl:text>
+      </xsl:attribute>
+      <xsl:call-template name="SecondaryColor" />
+      <xsl:call-template name="SecondaryFill" />
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:call-template name="PrimaryColor" />
+      <xsl:call-template name="PrimaryFill" />
+    </xsl:otherwise>
+  </xsl:choose>
   <!-- HalfColoration -->
   <xsl:apply-templates select="cmme:Corona" />
   <xsl:apply-templates select="cmme:Signum" />
   <xsl:apply-templates select="cmme:ModernText" />
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
 
@@ -719,7 +761,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <xsl:apply-templates select="../cmme:Dot/cmme:StaffLoc" />
   <!-- RelativeStaffLoc -->
   <!-- NoteEventID -->
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
 <xsl:template match="cmme:Dot/cmme:Pitch">
@@ -747,7 +789,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <orig>
     <xsl:apply-templates select="@ID" />
     <xsl:value-of select="cmme:Phrase" />
-    <xsl:call-template name="EventAttributes" />
+    <!-- <xsl:call-template name="EventAttributes" /> -->
   </orig>
 </xsl:template>
 <!-- /OriginalText -->
@@ -764,10 +806,15 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
   <xsl:apply-templates select="@ID" />
   <xsl:apply-templates select="cmme:Num" />
   <xsl:apply-templates select="cmme:Den" />
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 <!-- /Proportion -->
 
+<!-- ColorChange -->
+<xsl:template match="cmme:ColorChange">
+
+</xsl:template>
+<!-- -->
 
 <!-- Custos -->
 <xsl:template match="cmme:Custos">
@@ -779,7 +826,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 <xsl:template name="CustosData">
   <xsl:apply-templates select="@ID" />
   <xsl:call-template name="StaffPitchData" />
-  <xsl:call-template name="EventAttributes" />
+  <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 <!-- /Custos -->
 
@@ -1054,7 +1101,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-all.rng" type="application/xml
 </xsl:template>
 
 <xsl:template match="cmme:Colored">
-  <xsl:attribute name="color">
+  <xsl:attribute name="colored">
     <xsl:text>true</xsl:text>
   </xsl:attribute>
 </xsl:template>
