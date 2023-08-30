@@ -179,8 +179,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 <!-- / cmme:GeneralData/Metadata -->
 
 
-<!-- /Coloration -->
-
+<!-- Coloration -->
 <!-- BaseColoration Variables -->
 <xsl:variable name="BasePrimaryCol">
   <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Color" />
@@ -197,7 +196,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 <xsl:variable name="BaseSecondaryFill">
   <xsl:apply-templates select="//cmme:BaseColoration/cmme:SecondaryColor/cmme:Fill" />
 </xsl:variable>
-<!-- /Variables -->
+<!-- /BaseColoration Variables -->
 
 <xsl:template name="PrimaryColor">
       <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Color" />
@@ -748,7 +747,15 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 
 <xsl:template match="cmme:Dir">
   <xsl:attribute name="stem.dir">
-   <xsl:value-of select="lower-case(.)" />
+    <xsl:choose>
+      <xsl:when test=".='Barline'">
+        <!-- Incompatibility: Barline stem direction not available in MEI. -->
+        <xsl:text>down</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="lower-case(.)" />
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:attribute>
 </xsl:template>
 
@@ -987,8 +994,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 <xsl:template match="cmme:Reading">
     <rdg>
       <xsl:apply-templates select="cmme:VariantVersionID" />
-      <!-- PreferredReading -->
-      <!-- Error -->
+      <xsl:apply-templates select="cmme:PreferredReading" />
+      <xsl:apply-templates select="cmme:Error" />
       <xsl:apply-templates select="../cmme:Reading/cmme:Lacuna" />
       <xsl:apply-templates select="cmme:Music" />
     </rdg>
@@ -998,6 +1005,10 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
   <identifier>
     <xsl:value-of select="." />
   </identifier>
+</xsl:template>
+
+<xsl:template match="cmme:PreferredReading">
+  <!-- Do nothing -->
 </xsl:template>
 
 <xsl:template match="cmme:Reading/cmme:Lacuna">
