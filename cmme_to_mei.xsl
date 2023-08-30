@@ -179,15 +179,32 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 <!-- / cmme:GeneralData/Metadata -->
 
 
-<!-- /BaseColoration -->
+<!-- /Coloration -->
+
+<!-- BaseColoration Variables -->
+<xsl:variable name="BasePrimaryCol">
+  <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Color" />
+</xsl:variable>
+
+<xsl:variable name="BasePrimaryFill">
+  <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Fill" />
+</xsl:variable>
+
+<xsl:variable name="BaseSecondaryCol">
+  <xsl:apply-templates select="//cmme:BaseColoration/cmme:SecondaryColor/cmme:Color" />
+</xsl:variable>
+
+<xsl:variable name="BaseSecondaryFill">
+  <xsl:apply-templates select="//cmme:BaseColoration/cmme:SecondaryColor/cmme:Fill" />
+</xsl:variable>
+<!-- /Variables -->
+
 <xsl:template name="PrimaryColor">
-    <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Color" />
-    <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Color" />
+      <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Color" />
 </xsl:template>
 
 <xsl:template name="PrimaryFill">
-    <xsl:apply-templates select="//cmme:BaseColoration/cmme:PrimaryColor/cmme:Fill" />
-    <xsl:apply-templates select="preceding-sibling::cmme:ColorChange/cmme:PrimaryColor/cmme:Fill" />
+      <xsl:apply-templates select="preceding-sibling::cmme:ColorChange[1]/cmme:PrimaryColor/cmme:Fill" />
 </xsl:template>
 
 <xsl:template name="SecondaryColor">
@@ -199,13 +216,10 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template match="cmme:Color">
-  <xsl:attribute name="color">
     <xsl:value-of select="lower-case(.)" />
-  </xsl:attribute>
 </xsl:template>
 
 <xsl:template match="cmme:Fill">
-  <xsl:attribute name="head.fill">
     <xsl:choose>
       <xsl:when test=".='Full'">
         <xsl:text>solid</xsl:text>
@@ -214,13 +228,29 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
         <xsl:value-of select="lower-case(.)" />
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:attribute>
 </xsl:template>
-<!-- -->
+
+<xsl:template name="colorAttribute">
+  <xsl:param name="color" />
+  <xsl:if test="string-length($color)>0">
+    <xsl:attribute name="color">
+      <xsl:value-of select="$color" />
+    </xsl:attribute>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template name="fillAttribute">
+  <xsl:param name="fill" />
+  <xsl:if test="string-length($fill)>0">
+    <xsl:attribute name="head.fill">
+      <xsl:value-of select="$fill" />
+    </xsl:attribute>
+  </xsl:if>
+</xsl:template>
+<!-- /Coloration -->
 
 
 <!-- cmme:VoiceData -->
-<!-- Defines the musical staffs -->
 <xsl:template match="cmme:VoiceData">
   <scoreDef>
     <xsl:call-template name="renderTitle" />
@@ -228,14 +258,15 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
   </scoreDef>
 </xsl:template>
 
+<!-- Renders the title and name of composer -->
 <xsl:template name="renderTitle">
-  <!-- Renders the title and name of composer at the top of the score viewer -->
-    <pgHead>
-      <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
-      <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
-    </pgHead>
+  <pgHead>
+    <rend halign="center" valign="middle" fontweight="bold" fontsize="100%"><xsl:value-of select="//cmme:GeneralData/cmme:Title" /></rend>
+    <rend halign="center" valign="middle" fontweight="bold" fontsize="150%"><xsl:value-of select="//cmme:GeneralData/cmme:Composer" /></rend>
+  </pgHead>
 </xsl:template>
 
+<!-- Defines the musical staffs -->
 <xsl:template name="StaffDefinition">
   <!-- Define staffs -->
   <staffGrp>
@@ -257,9 +288,10 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
     </xsl:for-each>
   </staffGrp>
 </xsl:template>
-<!-- cmme:VoiceData END -->
+<!-- /cmme:VoiceData -->
 
 
+<!-- MusicSection -->
 <xsl:template match="cmme:MusicSection">
     <xsl:if test="cmme:Editorial or cmme:PrincipalSource">
       <annot>
@@ -402,7 +434,9 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template name="Clef">
-    <xsl:if test="matches(cmme:Appearance, 'Frnd|Fsqr|Gamma|MODERNG|MODERNG8|MODERNF|MODERNC')">
+  <!-- Frnd, Fsqr and Gamma clefs are not supported in CMME.
+      The result document will have a comment informing of this  -->
+    <xsl:if test="matches(cmme:Appearance, 'Frnd|Fsqr|Gamma')">
       <xsl:text>&#xa;</xsl:text>
       <xsl:comment> Incompatibility: In cmme this <xsl:value-of select="cmme:Pitch/cmme:LetterName" /> clef appears as a <xsl:value-of select="cmme:Appearance" /> clef: &lt;Appearance&gt;<xsl:value-of select="cmme:Appearance" />&lt;/Appearance&gt; </xsl:comment><xsl:text>&#xa;</xsl:text>
       &#xa;
@@ -651,12 +685,36 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
       <xsl:attribute name="colored">
         <xsl:text>true</xsl:text>
       </xsl:attribute>
-      <xsl:call-template name="SecondaryColor" />
-      <xsl:call-template name="SecondaryFill" />
+      <xsl:call-template name="colorAttribute">
+        <xsl:with-param name="color" select="$BaseSecondaryCol" />
+      </xsl:call-template>
+      <xsl:call-template name="fillAttribute">
+        <xsl:with-param name="fill" select="$BaseSecondaryFill" ></xsl:with-param>
+      </xsl:call-template>
     </xsl:when>
     <xsl:otherwise>
-      <xsl:call-template name="PrimaryColor" />
-      <xsl:call-template name="PrimaryFill" />
+      <xsl:choose>
+        <xsl:when test="//cmme:BaseColoration">
+          <xsl:call-template name="colorAttribute">
+            <xsl:with-param name="color" select="$BasePrimaryCol" />
+          </xsl:call-template>
+          <xsl:call-template name="fillAttribute">
+            <xsl:with-param name="fill" select="$BasePrimaryFill" />
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="colorAttribute">
+            <xsl:with-param name="color">
+              <xsl:call-template name="PrimaryColor" />
+            </xsl:with-param> 
+          </xsl:call-template>
+          <xsl:call-template name="fillAttribute">
+            <xsl:with-param name="fill">
+              <xsl:call-template name="PrimaryFill" />
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:otherwise>
   </xsl:choose>
   <!-- HalfColoration -->
@@ -980,12 +1038,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template match="cmme:MultiEvent">
-  <!-- <graceGrp label="MultiEvent">
-    <xsl:comment>
-      cmme MultiEvent Element
-    </xsl:comment> 
-    <xsl:call-template name="SingleEventData" />
-  </graceGrp>-->
+  <xsl:call-template name="SingleEventData" />
 </xsl:template>
 
 <!-- Matches with Locus in the CMME schema 
