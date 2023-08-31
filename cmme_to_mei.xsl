@@ -1025,10 +1025,11 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template match="cmme:Tie">
-  <!-- TODO -->
-  <xsl:attribute name="tie">
+  <!-- tie for some reason the tie attribute isn't supported in mei mensural 
+    Leaving this code incase future versions support it -->
+  <!-- <xsl:attribute name="tie">
     <xsl:text>t</xsl:text>
-  </xsl:attribute>
+  </xsl:attribute> -->
 </xsl:template>
 
 <xsl:template name="ModernAccidentalData">
