@@ -239,7 +239,6 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template match="cmme:PrincipalSource">
-  <!-- SourceInfo -->
   <bibl label="PrincipalSource">
     <xsl:call-template name="SourceInfo" />
   </bibl>
@@ -260,18 +259,12 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
 <!-- MensuralMusic -->
 <xsl:template match="cmme:MensuralMusic">
+  <xsl:apply-templates select="cmme:TacetInstruction" />
   <xsl:call-template name="MensuralMusicData" />
 </xsl:template>
 
 <xsl:template name="MensuralMusicData">
-  <!-- NumVoices -->
-  <!-- basecoloration -->
-  <xsl:apply-templates select="cmme:TacetInstruction" />
   <xsl:apply-templates select="../cmme:MensuralMusic/cmme:Voice" />
-</xsl:template>
-
-<xsl:template match="cmme:TacetInstruction">
-  
 </xsl:template>
 
 <xsl:template match="cmme:MensuralMusic/cmme:Voice">
@@ -279,10 +272,47 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template name="SingleVoiceSectionData">
-  <!-- VoiceNum -->
-  <!-- CanonResolutio (SVMSD) -->
-  <!-- MissingVersionID -->
+  <xsl:apply-templates select="cmme:MissingVersionID" />
+  <xsl:apply-templates select="cmme:CanonResolutio" />
   <xsl:apply-templates select="cmme:EventList" />
+</xsl:template>
+
+<xsl:template match="cmme:MissingVersionID">
+  <!-- Incompatible -->
+</xsl:template>
+
+<xsl:template match="cmme:CanonResolutio">
+  <!-- Incompatible -->
+</xsl:template>
+
+<xsl:template match="cmme:TacetInstruction">
+  <xsl:call-template name="TacetData" />
+</xsl:template>
+
+<xsl:template name="TacetData">
+  <staff>
+    <xsl:apply-templates select="cmme:VoiceNum" />
+    <xsl:apply-templates select="cmme:TacetText" />
+    <xsl:call-template name="Tacet" />
+  </staff>
+</xsl:template>
+
+<xsl:template match="cmme:TacetInstruction/cmme:VoiceNum">
+  <xsl:attribute name="n">
+    <xsl:value-of select="." />
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="cmme:TacetText">
+  <dir label="TacetInstruction">
+    <xsl:value-of select="." />
+  </dir>
+</xsl:template>
+
+<xsl:template name="Tacet">
+  <layer>
+    <space label="Tacet" />
+  </layer>
 </xsl:template>
 
 <xsl:template match="cmme:EventList">
@@ -293,6 +323,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     <xsl:call-template name="EventListData" />
   </staff>
 </xsl:template>
+
 
 <xsl:template name="EventListData">
   <layer>
@@ -314,15 +345,12 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
 <!-- Plainchant -->
 <xsl:template match="cmme:Plainchant">
+  <xsl:apply-templates select="cmme:TacetInstruction" />
   <xsl:call-template name="PlainchantSectionData" />
 </xsl:template>
 
 <xsl:template name="PlainchantSectionData">
-  <!-- NumVoices -->
-  <!-- BaseColoration -->
-  <!-- TacetInstruction -->
   <xsl:apply-templates select="../cmme:Plainchant/cmme:Voice" />
-  <!-- TextSectionData -->
 </xsl:template>
 
 <xsl:template match="cmme:Plainchant/cmme:Voice">
@@ -330,9 +358,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 </xsl:template>
 
 <xsl:template name="SingleVoiceChantSectionData">
-  <!-- VoiceNum -->
-  <!-- CanonResolutio -->
-  <!-- MissingVersionID -->
+  <xsl:apply-templates select="cmme:MissingVersionID" />
   <xsl:apply-templates select="cmme:EventList" />
 </xsl:template>
 <!-- /Plainchant -->
@@ -442,9 +468,9 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
   <xsl:apply-templates select="cmme:Number" />
   <xsl:apply-templates select="cmme:StaffLoc" />
   <xsl:apply-templates select="../cmme:Mensuration/cmme:Orientation" />
-  <!-- TODO: Small -->
+  <xsl:apply-templates select="cmme:Small" />
   <xsl:apply-templates select="cmme:MensInfo" />
-  <!-- TODO: NoScoreEffect -->
+  <xsl:apply-templates select="cmme:NoScoreEffect" />
   <!-- <xsl:call-template name="EventAttributes" /> -->
 </xsl:template>
 
@@ -519,7 +545,9 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     </xsl:attribute>
 </xsl:template>
 
-<!-- TODO: Small -->
+<xsl:template match="cmme:Small">
+  <!-- Incompatible -->
+</xsl:template>
 
 <xsl:template match="cmme:MensInfo">
   <xsl:apply-templates select="cmme:Prolatio" />
@@ -560,6 +588,10 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
     <xsl:attribute name="numbase">
     <xsl:value-of select="cmme:Den"></xsl:value-of>
   </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="cmme:NoScoreEffect">
+  <!-- Incompatible -->
 </xsl:template>
 <!-- /Mensuration -->
 
@@ -662,8 +694,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
   <!-- Corona/fermata -->
   <!--
-    NOTE: MEI has a fermata attribute that is similar to corona in CMME. 
-    However, the fermata attribute is not supported by the MEI mensural.
+    NOTE: The fermata (Corona) attribute is not supported by the MEI mensural.
     The conversion code is commented out below should an update 
     to the schema support it.
   -->
