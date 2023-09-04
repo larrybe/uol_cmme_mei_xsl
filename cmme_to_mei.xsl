@@ -6,12 +6,12 @@
 <xsl:template match="cmme:Piece">
 <xsl:text>&#xa;</xsl:text>
 <xsl:processing-instruction name="xml-model">
-href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"</xsl:processing-instruction>
+href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"</xsl:processing-instruction>
 <xsl:text>&#xa;</xsl:text>
 <xsl:processing-instruction name="xml-model">
-href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"</xsl:processing-instruction>
+href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"</xsl:processing-instruction>
 <!-- Start of the mei file -->
-    <mei meiversion="4.0.1">
+    <mei meiversion="5.0">
       <!-- meiHead contains the metadata of the music file. The equivalent in CMME is GeneralData  -->
       <meiHead>
         <!-- Transform the contents in the GeneralData element in the CMME file into the meiHead element  -->
@@ -439,7 +439,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
         <xsl:text>x</xsl:text>
       </xsl:when>
       <xsl:when test="cmme:Appearance='Fis'">
-        <xsl:text><!-- TODO --></xsl:text>
+        <xsl:text>s</xsl:text>
       </xsl:when>
     </xsl:choose>
   </xsl:attribute>
@@ -802,7 +802,7 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 
 <!-- ColorChange -->
 <xsl:template match="cmme:ColorChange">
-
+<!-- Do nothing -->
 </xsl:template>
 <!-- -->
 
@@ -1042,9 +1042,8 @@ href="https://music-encoding.org/schema/4.0.1/mei-Mensural.rng" type="applicatio
 <xsl:template match="cmme:Lig">
   <xsl:choose>
     <xsl:when test=".='Retrorsum'">
-      <xsl:comment>ALERT: This note had a Ligature in CMME with the value Retrorsum.
-        Retrorsum is an incompatible ligature with MEI.
-        The value is preserved in the following add element.</xsl:comment>
+      <xsl:comment>ALERT: This note had a Ligature in CMME with the value Retrorsum 
+        which is an incompatible ligature with MEI. The value is preserved in the following add element.</xsl:comment>
       <add label="cmme-ligature"><xsl:value-of select="." /></add>
     </xsl:when>
     <xsl:otherwise>
