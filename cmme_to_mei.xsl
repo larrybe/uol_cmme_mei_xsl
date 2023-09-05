@@ -239,9 +239,11 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 </xsl:template>
 
 <xsl:template match="cmme:PrincipalSource">
-  <bibl label="PrincipalSource">
-    <xsl:call-template name="SourceInfo" />
-  </bibl>
+  <biblList>
+    <bibl label="PrincipalSource">
+      <xsl:call-template name="SourceInfo" />
+    </bibl>
+  </biblList>
 </xsl:template>
 
 <xsl:template name="SourceInfo">
@@ -479,7 +481,7 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
   <xsl:apply-templates select="cmme:MainSymbol" />
   <xsl:apply-templates select="../cmme:Sign/cmme:Orientation" />
   <xsl:apply-templates select="cmme:Strokes" />
-  <xsl:call-template name="SignDot" />
+  <xsl:apply-templates select="../cmme:Sign/cmme:Dot" />
 </xsl:template>
 
 <xsl:template match="cmme:MainSymbol">
@@ -500,16 +502,9 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
   </xsl:attribute>
 </xsl:template>
 
-<xsl:template name="SignDot">
+<xsl:template match="cmme:Sign/cmme:Dot">
   <xsl:attribute name="dot">
-    <xsl:choose>
-      <xsl:when test="cmme:Dot">
-        <xsl:text>true</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:text>false</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:text>true</xsl:text>
   </xsl:attribute>
 </xsl:template>
   <!-- /Sign -->
@@ -693,18 +688,23 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
   <!-- /Stem -->
 
   <!-- Corona/fermata -->
-  <!--
-    NOTE: The fermata (Corona) attribute is not supported by the MEI mensural.
-    The conversion code is commented out below should an update 
-    to the schema support it.
-  -->
-  <!-- 
 <xsl:template match="cmme:Corona">
+  <xsl:apply-templates select="../cmme:Corona/cmme:Orientation" />
+</xsl:template>
+
+<xsl:template match="cmme:Corona/cmme:Orientation">
   <xsl:attribute name="fermata">
-       <xsl:text>above</xsl:text>
+    <xsl:choose>
+      <xsl:when test=".='Up'">
+        <xsl:text>above</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>below</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:attribute>
 </xsl:template>
--->
+
 <!-- /Corona -->
 
 <!-- Signum -->
