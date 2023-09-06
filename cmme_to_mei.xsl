@@ -601,11 +601,17 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 <xsl:template name="RestData">
   <xsl:apply-templates select="@ID" />
   <xsl:call-template name="NoteInfoData" />
-  <!-- BottomStaffLine -->
+  <xsl:apply-templates select="cmme:BottomStaffLine" />
   <xsl:apply-templates select="cmme:NumSpaces" />
   <xsl:apply-templates select="cmme:Corona" />
   <!-- Signum --><!-- /SignumData -->
   <!-- <xsl:call-template name="EventAttributes" /> -->
+</xsl:template>
+
+<xsl:template match="cmme:BottomStaffLine">
+  <xsl:attribute name="loc">
+    <xsl:value-of select="(.*2)-2"></xsl:value-of>
+  </xsl:attribute>
 </xsl:template>
 
 <xsl:template match="cmme:NumSpaces">
@@ -853,21 +859,35 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 
   <!-- Barline -->
 <xsl:template match="cmme:Barline">
-  <barLine>
-    <xsl:apply-templates select="cmme:NumLines" />  
-    <!-- <xsl:apply-templates select="cmme:RepeatSign" /> -->
-    <xsl:apply-templates select="cmme:BottomStaffLine" />
-    <xsl:apply-templates select="cmme:NumSpaces" />
-  </barLine>
+    <barLine>
+      <xsl:apply-templates select="cmme:NumLines" />  
+      <xsl:apply-templates select="cmme:RepeatSign" />
+      <xsl:apply-templates select="cmme:BottomStaffLine" />
+      <xsl:apply-templates select="cmme:NumSpaces" />
+    </barLine>
 </xsl:template>
 
 <xsl:template match="cmme:NumLines">
-  <!-- <xsl:attribute name="">
-
-  </xsl:attribute> -->
+  <xsl:if test=".=2">
+    <xsl:attribute name="form">
+      <xsl:text>dbl</xsl:text>
+    </xsl:attribute>
+  </xsl:if>
 </xsl:template>
 
-  <!-- /Barline -->
+<xsl:template match="cmme:Barline/cmme:BottomStaffLine">
+  <xsl:attribute name="place">
+    <xsl:value-of select="(.*2)-2"></xsl:value-of>
+  </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="cmme:Barline/cmme:NumSpaces">
+  <!-- Do nothing -->
+</xsl:template>
+
+<xsl:template match="cmme:RepeatSign">
+
+</xsl:template>
 
   <!-- TextAnnotation -->
 <xsl:template match="cmme:TextAnnotation">
