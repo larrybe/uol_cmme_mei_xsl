@@ -742,11 +742,11 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 <!-- /ModernText -->
 
 <xsl:template match="cmme:Flagged">
-  <!-- DO nothing -->
+  <!-- Incompatible -->
 </xsl:template>
 
 <xsl:template match="cmme:HalfColoration">
-  <!-- Do nothing -->
+  <!-- Incompatible -->
 </xsl:template>
 
 
@@ -814,7 +814,7 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 
 <!-- ColorChange -->
 <xsl:template match="cmme:ColorChange">
-<!-- Do nothing -->
+<!-- Incompatible -->
 </xsl:template>
 <!-- -->
 
@@ -887,11 +887,11 @@ href="https://music-encoding.org/schema/5.0/mei-Mensural.rng" type="application/
 </xsl:template>
 
 <xsl:template match="cmme:Barline/cmme:NumSpaces">
-  <!-- Do nothing -->
+  <!-- Incompatible -->
 </xsl:template>
 
 <xsl:template match="cmme:RepeatSign">
-
+  <!-- Incompatible -->
 </xsl:template>
 
   <!-- TextAnnotation -->
